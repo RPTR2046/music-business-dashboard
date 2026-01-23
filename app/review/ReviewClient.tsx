@@ -176,7 +176,8 @@ export default function ReviewClient({ userEmail, songs }: ReviewClientProps) {
         return;
       }
 
-      const newSong = await createResponse.json();
+      const newSongResponse = await createResponse.json();
+      const newSong = newSongResponse.song;
 
       // Add the new song to available songs
       setAvailableSongs(prev => [...prev, newSong]);
