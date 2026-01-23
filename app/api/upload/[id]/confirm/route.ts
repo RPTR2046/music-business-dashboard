@@ -183,6 +183,8 @@ export async function POST(
           currency_code: 'USD',
           territory: tx.territory,
           usage_type: tx.usageType,
+          income_type: tx.incomeType,
+          royalty_type: tx.royaltyType,
           matched_by: match?.matchType || null,
           match_confidence: match?.confidence || null,
         };

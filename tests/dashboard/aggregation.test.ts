@@ -9,8 +9,10 @@ import {
   aggregateByMonth,
   aggregateByPlatform,
   aggregateTopTracks,
+  aggregateByIncomeType,
   getDefaultDateRange,
   formatMonthLabel,
+  formatDateForDisplay,
   TransactionRow,
 } from '../../lib/dashboard/aggregation';
 import { getPlatformColor, PLATFORM_COLORS } from '../../lib/dashboard/types';
@@ -291,15 +293,15 @@ describe('getDefaultDateRange', () => {
     expect(range.to).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
-  it('should return a range spanning approximately 12 months', () => {
+  it('should return a range spanning approximately 24 months', () => {
     const range = getDefaultDateRange();
     const from = new Date(range.from);
     const to = new Date(range.to);
     const diffMonths =
       (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
 
-    expect(diffMonths).toBeGreaterThanOrEqual(11);
-    expect(diffMonths).toBeLessThanOrEqual(13);
+    expect(diffMonths).toBeGreaterThanOrEqual(23);
+    expect(diffMonths).toBeLessThanOrEqual(25);
   });
 
   it('should have to date as today or very recent', () => {
@@ -326,5 +328,77 @@ describe('formatMonthLabel', () => {
   it('should handle different months', () => {
     expect(formatMonthLabel('2024-06')).toContain('Jun');
     expect(formatMonthLabel('2024-12')).toContain('Dec');
+  });
+});
+
+describe('aggregateByIncomeType', () => {
+  it('should separate master and publishing income', () => {
+    const transactions = [
+      createTransaction({ amount: 100, income_type: 'master' }),
+      createTransaction({ amount: 50, income_type: 'publishing' }),
+    ];
+
+    const result = aggregateByIncomeType(transactions);
+
+    expect(result.masterRevenue).toBe(100);
+    expect(result.publishingRevenue).toBe(50);
+  });
+
+  it('should treat null/missing income_type as master (legacy data)', () => {
+    const transactions = [
+      createTransaction({ amount: 75 }), // no income_type
+      createTransaction({ amount: 25, income_type: null }),
+    ];
+
+    const result = aggregateByIncomeType(transactions);
+
+    expect(result.masterRevenue).toBe(100);
+    expect(result.publishingRevenue).toBe(0);
+  });
+
+  it('should calculate correct percentages', () => {
+    const transactions = [
+      createTransaction({ amount: 75, income_type: 'master' }),
+      createTransaction({ amount: 25, income_type: 'publishing' }),
+    ];
+
+    const result = aggregateByIncomeType(transactions);
+
+    expect(result.masterPercentage).toBe(75);
+    expect(result.publishingPercentage).toBe(25);
+  });
+
+  it('should handle empty array', () => {
+    const result = aggregateByIncomeType([]);
+
+    expect(result.masterRevenue).toBe(0);
+    expect(result.publishingRevenue).toBe(0);
+    expect(result.masterPercentage).toBe(0);
+    expect(result.publishingPercentage).toBe(0);
+  });
+
+  it('should round revenue to 2 decimal places', () => {
+    const transactions = [
+      createTransaction({ amount: 33.333, income_type: 'master' }),
+      createTransaction({ amount: 16.667, income_type: 'publishing' }),
+    ];
+
+    const result = aggregateByIncomeType(transactions);
+
+    expect(result.masterRevenue).toBe(33.33);
+    expect(result.publishingRevenue).toBe(16.67);
+  });
+});
+
+describe('formatDateForDisplay', () => {
+  it('should format date string to readable format', () => {
+    const result = formatDateForDisplay('2024-06-15');
+    expect(result).toContain('Jun');
+    expect(result).toContain('2024');
+  });
+
+  it('should handle different dates correctly', () => {
+    expect(formatDateForDisplay('2023-01-01')).toContain('Jan');
+    expect(formatDateForDisplay('2024-12-31')).toContain('Dec');
   });
 });

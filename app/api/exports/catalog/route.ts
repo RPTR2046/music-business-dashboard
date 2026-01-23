@@ -7,6 +7,12 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import {
+  checkRateLimit,
+  rateLimitHeaders,
+  rateLimitExceededResponse,
+  RATE_LIMITS,
+} from '@/lib/rate-limit';
 
 export async function GET() {
   try {
@@ -15,6 +21,16 @@ export async function GET() {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check rate limit for exports (20 per hour)
+    const rateLimitResult = checkRateLimit(
+      `export:${user.id}`,
+      RATE_LIMITS.export
+    );
+
+    if (!rateLimitResult.success) {
+      return rateLimitExceededResponse(rateLimitResult.resetAt);
     }
 
     const { data: songs, error } = await supabase
@@ -68,6 +84,11 @@ export async function GET() {
       headers: {
         'Content-Type': 'text/csv',
         'Content-Disposition': `attachment; filename="catalog_export_${today}.csv"`,
+        ...rateLimitHeaders(
+          rateLimitResult.remaining,
+          rateLimitResult.resetAt,
+          RATE_LIMITS.export.maxRequests
+        ),
       },
     });
   } catch (error) {

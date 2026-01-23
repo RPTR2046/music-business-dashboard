@@ -12,6 +12,13 @@ export interface DashboardSummary {
   unmatchedCount: number;
 }
 
+export interface IncomeBreakdown {
+  masterRevenue: number;      // Recording/artist share income
+  publishingRevenue: number;  // Songwriter/publishing income
+  masterPercentage: number;
+  publishingPercentage: number;
+}
+
 export interface MonthlyRevenue {
   month: string; // YYYY-MM format
   revenue: number;
@@ -42,6 +49,7 @@ export interface RecentActivity {
 
 export interface DashboardStatsResponse {
   summary: DashboardSummary;
+  incomeBreakdown: IncomeBreakdown;
   revenueByMonth: MonthlyRevenue[];
   revenueByPlatform: PlatformRevenue[];
   topTracks: TopTrack[];

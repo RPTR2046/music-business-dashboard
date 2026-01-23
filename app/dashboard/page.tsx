@@ -5,6 +5,7 @@ import {
   aggregateByMonth,
   aggregateByPlatform,
   aggregateTopTracks,
+  aggregateByIncomeType,
   getDefaultDateRange,
   TransactionRow,
 } from '@/lib/dashboard/aggregation';
@@ -35,7 +36,7 @@ export default async function DashboardPage({
   // Fetch transactions within date range
   let transactionsQuery = supabase
     .from('transactions')
-    .select('amount, reporting_period_start, platform_source, track_title, created_at')
+    .select('amount, reporting_period_start, platform_source, track_title, created_at, income_type, royalty_type')
     .eq('user_id', user.id)
     .order('reporting_period_start', { ascending: false });
 
@@ -81,6 +82,7 @@ export default async function DashboardPage({
   const revenueByMonth = aggregateByMonth(txData);
   const revenueByPlatform = aggregateByPlatform(txData);
   const topTracks = aggregateTopTracks(txData, 10);
+  const incomeBreakdown = aggregateByIncomeType(txData);
 
   // Fetch recent activity
   const [{ data: recentUploads }, { data: recentTransactions }] = await Promise.all([
@@ -135,6 +137,7 @@ export default async function DashboardPage({
       uploadCount: uploadCount || 0,
       unmatchedCount: unmatchedCount || 0,
     },
+    incomeBreakdown,
     revenueByMonth,
     revenueByPlatform,
     topTracks,

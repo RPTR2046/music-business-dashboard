@@ -1,4 +1,20 @@
 /**
+ * Income type - which rights the income derives from
+ * - master: Recording/master rights (artist share from streaming, sales, etc.)
+ * - publishing: Publishing/songwriting rights (writer share from performances, mechanicals)
+ */
+export type IncomeType = 'master' | 'publishing';
+
+/**
+ * Royalty type - specific category of royalty payment
+ * - recording: Master recording royalties (streaming, downloads, physical sales)
+ * - performance: Public performance royalties (radio, TV, live, digital performance)
+ * - mechanical: Mechanical royalties (reproduction rights - streams, downloads, physical)
+ * - sync: Synchronization royalties (music in film, TV, ads, games)
+ */
+export type RoyaltyType = 'recording' | 'performance' | 'mechanical' | 'sync';
+
+/**
  * Unified transaction schema that all CSV formats normalize to
  */
 export interface NormalizedTransaction {
@@ -15,6 +31,10 @@ export interface NormalizedTransaction {
   // Source information
   platform: string;
   source: 'distrokid' | 'bmi' | 'ascap';
+
+  // Income categorization
+  incomeType: IncomeType;
+  royaltyType: RoyaltyType;
 
   // Time period
   reportingPeriod: string; // YYYY-MM format

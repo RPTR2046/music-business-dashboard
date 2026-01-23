@@ -8,6 +8,7 @@ import {
   MonthlyRevenue,
   PlatformRevenue,
   TopTrack,
+  IncomeBreakdown,
   getPlatformColor,
 } from './types';
 
@@ -17,6 +18,8 @@ export interface TransactionRow {
   platform_source: string;
   track_title: string;
   created_at: string;
+  income_type?: string | null;
+  royalty_type?: string | null;
 }
 
 /**
@@ -115,6 +118,35 @@ export function aggregateTopTracks(
     }))
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, limit);
+}
+
+/**
+ * Aggregate income by type (master vs publishing)
+ */
+export function aggregateByIncomeType(transactions: TransactionRow[]): IncomeBreakdown {
+  let masterRevenue = 0;
+  let publishingRevenue = 0;
+
+  for (const tx of transactions) {
+    const amount = tx.amount || 0;
+    if (tx.income_type === 'master') {
+      masterRevenue += amount;
+    } else if (tx.income_type === 'publishing') {
+      publishingRevenue += amount;
+    } else {
+      // If no income_type set, assume master (legacy data from DistroKid)
+      masterRevenue += amount;
+    }
+  }
+
+  const total = masterRevenue + publishingRevenue;
+
+  return {
+    masterRevenue: Math.round(masterRevenue * 100) / 100,
+    publishingRevenue: Math.round(publishingRevenue * 100) / 100,
+    masterPercentage: total > 0 ? Math.round((masterRevenue / total) * 1000) / 10 : 0,
+    publishingPercentage: total > 0 ? Math.round((publishingRevenue / total) * 1000) / 10 : 0,
+  };
 }
 
 /**

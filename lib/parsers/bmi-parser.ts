@@ -89,6 +89,7 @@ export function parseBMI(rows: Record<string, string>[]): ParseResult {
       const reportingDate = parsePerformanceDate(row['PERF DATE'], period);
 
       // Create normalized transaction
+      // BMI = publishing/performance royalties (songwriter share from public performances)
       const transaction: NormalizedTransaction = {
         trackTitle: titleName,
         artistName: row['PARTICIPANT NAME'] || '',
@@ -98,6 +99,8 @@ export function parseBMI(rows: Record<string, string>[]): ParseResult {
         quantity: parseNumber(row['PERF COUNT']) || 1,
         platform: normalizeBMIPlatform(row['PERF SOURCE']),
         source: 'bmi',
+        incomeType: 'publishing',
+        royaltyType: 'performance',
         reportingPeriod,
         reportingDate,
         territory: normalizeTerritory(row['COUNTRY OF PERFORMANCE']),

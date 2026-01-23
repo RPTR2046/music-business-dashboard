@@ -84,6 +84,7 @@ export function parseDistroKid(rows: Record<string, string>[]): ParseResult {
       const reportingDate = parseReportingDate(row['Reporting Date']);
 
       // Create normalized transaction
+      // DistroKid = master/recording royalties (artist share from streaming/sales)
       const transaction: NormalizedTransaction = {
         trackTitle: title,
         artistName: row['Artist'] || '',
@@ -93,6 +94,8 @@ export function parseDistroKid(rows: Record<string, string>[]): ParseResult {
         quantity: parseNumber(row['Quantity']) || 1,
         platform: normalizePlatform(row['Store']),
         source: 'distrokid',
+        incomeType: 'master',
+        royaltyType: 'recording',
         reportingPeriod,
         reportingDate,
         territory: normalizeTerritory(row['Country of Sale']),

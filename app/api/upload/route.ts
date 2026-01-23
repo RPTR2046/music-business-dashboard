@@ -14,6 +14,12 @@ import { createClient } from '@/lib/supabase/server';
 import { validateUploadFile } from '@/lib/upload/validation';
 import { uploadToS3 } from '@/lib/upload/s3-upload';
 import { parseCSV, validateCSV } from '@/lib/parsers';
+import {
+  checkRateLimit,
+  rateLimitHeaders,
+  rateLimitExceededResponse,
+  RATE_LIMITS,
+} from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Allow up to 60 seconds for large files
@@ -29,6 +35,16 @@ export async function POST(request: NextRequest) {
         { error: 'Unauthorized. Please log in to upload files.' },
         { status: 401 }
       );
+    }
+
+    // Check rate limit for uploads (10 per hour)
+    const rateLimitResult = checkRateLimit(
+      `upload:${user.id}`,
+      RATE_LIMITS.upload
+    );
+
+    if (!rateLimitResult.success) {
+      return rateLimitExceededResponse(rateLimitResult.resetAt);
     }
 
     // Parse form data
@@ -133,15 +149,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Return parse result with upload ID for confirmation step
-    return NextResponse.json({
-      uploadId: uploadRecord.id,
-      source: parseResult.source,
-      summary: parseResult.summary,
-      preview: parseResult.transactions.slice(0, 50), // First 50 for preview
-      errors: parseResult.errors.slice(0, 20), // First 20 errors
-      hasMoreTransactions: parseResult.transactions.length > 50,
-      hasMoreErrors: parseResult.errors.length > 20,
-    });
+    return NextResponse.json(
+      {
+        uploadId: uploadRecord.id,
+        source: parseResult.source,
+        summary: parseResult.summary,
+        preview: parseResult.transactions.slice(0, 50), // First 50 for preview
+        errors: parseResult.errors.slice(0, 20), // First 20 errors
+        hasMoreTransactions: parseResult.transactions.length > 50,
+        hasMoreErrors: parseResult.errors.length > 20,
+      },
+      {
+        headers: rateLimitHeaders(
+          rateLimitResult.remaining,
+          rateLimitResult.resetAt,
+          RATE_LIMITS.upload.maxRequests
+        ),
+      }
+    );
 
   } catch (error) {
     console.error('Upload error:', error);

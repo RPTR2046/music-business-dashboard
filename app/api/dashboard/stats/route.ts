@@ -7,6 +7,7 @@
  * Query params:
  * - from: Start date (ISO 8601 date string, e.g., "2024-01-01")
  * - to: End date (ISO 8601 date string, e.g., "2024-12-31")
+ * - incomeType: Filter by income type ('master' or 'publishing')
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,6 +16,7 @@ import {
   aggregateByMonth,
   aggregateByPlatform,
   aggregateTopTracks,
+  aggregateByIncomeType,
   getDefaultDateRange,
   TransactionRow,
 } from '@/lib/dashboard/aggregation';
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse date range from query params
+    // Parse date range and filters from query params
     const searchParams = request.nextUrl.searchParams;
     const defaultRange = getDefaultDateRange();
     // Empty string means "no filter" (All time), null means use default
@@ -40,11 +42,12 @@ export async function GET(request: NextRequest) {
     const toParam = searchParams.get('to');
     const from = fromParam === '' ? null : (fromParam || defaultRange.from);
     const to = toParam === '' ? null : (toParam || defaultRange.to);
+    const incomeType = searchParams.get('incomeType'); // 'master' or 'publishing'
 
     // Fetch transactions within date range
     let transactionsQuery = supabase
       .from('transactions')
-      .select('amount, reporting_period_start, platform_source, track_title, created_at')
+      .select('amount, reporting_period_start, platform_source, track_title, created_at, income_type, royalty_type')
       .eq('user_id', user.id)
       .order('reporting_period_start', { ascending: false });
 
@@ -53,6 +56,9 @@ export async function GET(request: NextRequest) {
     }
     if (to) {
       transactionsQuery = transactionsQuery.lte('reporting_period_start', to);
+    }
+    if (incomeType) {
+      transactionsQuery = transactionsQuery.eq('income_type', incomeType);
     }
 
     const { data: transactions, error: txError } = await transactionsQuery;
@@ -97,6 +103,7 @@ export async function GET(request: NextRequest) {
     const revenueByMonth = aggregateByMonth(txData);
     const revenueByPlatform = aggregateByPlatform(txData);
     const topTracks = aggregateTopTracks(txData, 10);
+    const incomeBreakdown = aggregateByIncomeType(txData);
 
     // Fetch recent activity (uploads and high-value transactions)
     const [{ data: recentUploads }, { data: recentTransactions }] = await Promise.all([
@@ -152,6 +159,7 @@ export async function GET(request: NextRequest) {
         uploadCount: uploadCount || 0,
         unmatchedCount: unmatchedCount || 0,
       },
+      incomeBreakdown,
       revenueByMonth,
       revenueByPlatform,
       topTracks,

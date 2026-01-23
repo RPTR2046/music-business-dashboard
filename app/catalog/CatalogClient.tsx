@@ -17,6 +17,41 @@ interface Song {
   created_at: string;
 }
 
+type IssueType = 'missing_isrc' | 'incomplete_splits';
+
+interface SongIssue {
+  type: IssueType;
+  label: string;
+  description: string;
+}
+
+function getSongIssues(song: Song): SongIssue[] {
+  const issues: SongIssue[] = [];
+
+  if (!song.isrc) {
+    issues.push({
+      type: 'missing_isrc',
+      label: 'No ISRC',
+      description: 'Song is missing ISRC code - transactions may not match automatically',
+    });
+  }
+
+  const hasOwnership = song.master_ownership_percent !== null || song.publishing_ownership_percent !== null;
+  const ownershipIncomplete = hasOwnership && (
+    song.master_ownership_percent === null || song.publishing_ownership_percent === null
+  );
+
+  if (ownershipIncomplete) {
+    issues.push({
+      type: 'incomplete_splits',
+      label: 'Incomplete splits',
+      description: 'Both master and publishing ownership percentages should be set',
+    });
+  }
+
+  return issues;
+}
+
 interface UnmatchedTrack {
   title: string;
   artistName: string | null;
@@ -589,6 +624,47 @@ function BulkEditModal({
   );
 }
 
+function IssuesBadge({ issues }: { issues: SongIssue[] }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  if (issues.length === 0) {
+    return <span className="text-green-600 text-sm">OK</span>;
+  }
+
+  return (
+    <div
+      className="relative inline-block"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 cursor-help">
+        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+            clipRule="evenodd"
+          />
+        </svg>
+        {issues.length} {issues.length === 1 ? 'issue' : 'issues'}
+      </span>
+      {showTooltip && (
+        <div className="absolute z-50 left-0 mt-1 w-64 bg-gray-900 text-white text-xs rounded-md shadow-lg py-2 px-3">
+          <ul className="space-y-1">
+            {issues.map((issue) => (
+              <li key={issue.type} className="flex items-start gap-2">
+                <span className="text-amber-400 mt-0.5">•</span>
+                <span>
+                  <span className="font-medium">{issue.label}:</span> {issue.description}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SongRow({
   song,
   isSelected,
@@ -601,6 +677,7 @@ function SongRow({
   onDelete: (id: string) => void;
 }) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const issues = getSongIssues(song);
 
   async function handleDelete() {
     if (!confirm('Are you sure you want to delete this song? This will unlink any associated transactions.')) {
@@ -647,6 +724,9 @@ function SongRow({
       <td className="px-6 py-4 text-gray-700">{song.distributor || '-'}</td>
       <td className="px-6 py-4 text-gray-700">
         {song.release_date ? new Date(song.release_date).toLocaleDateString() : '-'}
+      </td>
+      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+        <IssuesBadge issues={issues} />
       </td>
       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
         <button
@@ -1019,6 +1099,9 @@ export default function CatalogClient({ initialSongs, userEmail, unmatchedCount 
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Release Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
