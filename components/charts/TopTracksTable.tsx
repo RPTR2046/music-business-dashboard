@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { TopTrack } from '@/lib/dashboard/types';
 
 interface TopTracksTableProps {
@@ -77,20 +78,25 @@ export function TopTracksTable({ data, isLoading }: TopTracksTableProps) {
               <tr key={idx} className="hover:bg-gray-50">
                 <td className="px-3 py-3 text-sm text-gray-500">{idx + 1}</td>
                 <td className="px-3 py-3">
-                  <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                    {track.trackTitle}
-                  </div>
-                  <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-xs">
-                    <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${(track.revenue / maxRevenue) * 100}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {track.transactionCount.toLocaleString()} transactions
-                  </div>
+                  <Link
+                    href={`/catalog?search=${encodeURIComponent(track.trackTitle)}`}
+                    className="block group"
+                  >
+                    <div className="text-sm font-medium text-blue-600 group-hover:text-blue-800 truncate max-w-xs">
+                      {track.trackTitle}
+                    </div>
+                    <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-xs">
+                      <div
+                        className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${(track.revenue / maxRevenue) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {track.transactionCount.toLocaleString()} transactions
+                    </div>
+                  </Link>
                 </td>
                 <td className="px-3 py-3 text-sm text-gray-900 text-right font-medium">
                   {formatCurrency(track.revenue)}

@@ -70,6 +70,8 @@ export async function POST(
 
     // Parse the CSV again
     const parseResult = parseCSV(content);
+    console.log(`[Confirm] Parsed ${parseResult.transactions.length} transactions from S3 file, content length: ${content.length}`);
+
     if (parseResult.transactions.length === 0) {
       return NextResponse.json(
         { error: 'No valid transactions to import' },
@@ -164,6 +166,7 @@ export async function POST(
         const matchKey = `${tx.trackTitle}|${tx.isrc || ''}`;
         const match = matchingResults?.get(matchKey);
 
+        // Store all parsed CSV fields for future feature development
         return {
           user_id: user.id,
           upload_id: id,
@@ -247,6 +250,14 @@ export async function POST(
 }
 
 /**
+ * Normalize amount for comparison (round to 2 decimal places as cents)
+ * This avoids floating point precision issues when comparing amounts
+ */
+function normalizeAmount(amount: number): string {
+  return (Math.round(amount * 100) / 100).toFixed(2);
+}
+
+/**
  * Check for duplicate transactions in the database
  * Returns transactions that don't already exist
  */
@@ -284,28 +295,57 @@ async function checkForDuplicates(
     return { newTransactions: transactions, duplicateCount: 0 };
   }
 
+  console.log(`[Duplicate Check] Dates to check: ${dates.length}, Existing transactions found: ${existingTransactions?.length || 0}, New transactions: ${transactions.length}`);
+
+  // Log sample of existing transactions for debugging
+  if (existingTransactions && existingTransactions.length > 0) {
+    console.log(`[Duplicate Check] Sample existing: ${JSON.stringify(existingTransactions.slice(0, 3))}`);
+  }
+
+  // Log sample of new transactions for debugging
+  if (transactions.length > 0) {
+    console.log(`[Duplicate Check] Sample new: ${JSON.stringify(transactions.slice(0, 3).map(tx => ({
+      reportingPeriod: tx.reportingPeriod,
+      trackTitle: tx.trackTitle,
+      platform: tx.platform,
+      earnings: tx.earnings
+    })))}`);
+  }
+
   // Create a set of existing composite keys for fast lookup
+  // Use normalized amounts to avoid floating point precision issues
   const existingKeys = new Set(
     (existingTransactions || []).map(
       (tx) =>
-        `${tx.reporting_period_start}|${tx.track_title}|${tx.platform_source}|${tx.amount}`
+        `${tx.reporting_period_start}|${tx.track_title}|${tx.platform_source}|${normalizeAmount(tx.amount)}`
     )
   );
+
+  console.log(`[Duplicate Check] Existing keys count: ${existingKeys.size}`);
 
   // Filter out duplicates
   const newTransactions: NormalizedTransaction[] = [];
   let duplicateCount = 0;
+  let firstDuplicateKey: string | null = null;
 
   for (const tx of transactions) {
-    const key = `${tx.reportingPeriod}-01|${tx.trackTitle}|${tx.platform}|${tx.earnings}`;
+    const key = `${tx.reportingPeriod}-01|${tx.trackTitle}|${tx.platform}|${normalizeAmount(tx.earnings)}`;
 
     if (existingKeys.has(key)) {
       duplicateCount++;
+      if (!firstDuplicateKey) {
+        firstDuplicateKey = key;
+      }
     } else {
       newTransactions.push(tx);
       // Add to set to catch duplicates within the same file
       existingKeys.add(key);
     }
+  }
+
+  console.log(`[Duplicate Check] Result: ${newTransactions.length} new, ${duplicateCount} duplicates`);
+  if (firstDuplicateKey) {
+    console.log(`[Duplicate Check] First duplicate key: ${firstDuplicateKey}`);
   }
 
   return { newTransactions, duplicateCount };

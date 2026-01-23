@@ -123,7 +123,8 @@ export function aggregateTopTracks(
 export function getDefaultDateRange(): { from: string; to: string } {
   const to = new Date();
   const from = new Date();
-  from.setMonth(from.getMonth() - 12);
+  // Default to 24 months to include typical reporting lag
+  from.setMonth(from.getMonth() - 24);
 
   return {
     from: from.toISOString().slice(0, 10),

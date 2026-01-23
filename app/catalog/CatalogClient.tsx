@@ -634,11 +634,13 @@ function SongRow({
           className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
         />
       </td>
-      <td className="px-6 py-4">
-        <div className="font-medium text-gray-900">{song.title}</div>
-        {song.release_title && (
-          <div className="text-sm text-gray-500">{song.release_title}</div>
-        )}
+      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+        <Link href={`/catalog/${song.id}`} className="block">
+          <div className="font-medium text-blue-600 hover:text-blue-800">{song.title}</div>
+          {song.release_title && (
+            <div className="text-sm text-gray-500">{song.release_title}</div>
+          )}
+        </Link>
       </td>
       <td className="px-6 py-4 text-gray-700">{song.artist_name || '-'}</td>
       <td className="px-6 py-4 text-gray-700 font-mono text-sm">{song.isrc || '-'}</td>
@@ -666,7 +668,7 @@ export default function CatalogClient({ initialSongs, userEmail, unmatchedCount 
   const [songs, setSongs] = useState<Song[]>(initialSongs);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkOperating, setIsBulkOperating] = useState(false);
   const [bulkEditModal, setBulkEditModal] = useState<'artist' | 'release_date' | null>(null);
@@ -679,7 +681,12 @@ export default function CatalogClient({ initialSongs, userEmail, unmatchedCount 
       // Remove the query param from URL
       router.replace('/catalog', { scroll: false });
     }
-  }, [searchParams, unmatchedCount, router]);
+    // Handle search query from URL
+    const urlSearch = searchParams.get('search');
+    if (urlSearch && urlSearch !== searchQuery) {
+      setSearchQuery(urlSearch);
+    }
+  }, [searchParams, unmatchedCount, router, searchQuery]);
 
   const filteredSongs = songs.filter(
     (song) =>

@@ -7,7 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getSignedDownloadUrl } from '@/lib/upload/s3-upload';
+import { getSignedDownloadUrl, getFileFromS3 } from '@/lib/upload/s3-upload';
+import { parseCSV } from '@/lib/parsers';
 
 export async function GET(
   request: NextRequest,
@@ -50,12 +51,69 @@ export async function GET(
       .select('*', { count: 'exact', head: true })
       .eq('upload_id', id);
 
+    // For pending uploads, also return parsed data for review
+    let summary = null;
+    let preview: Array<{
+      trackTitle: string;
+      artistName: string;
+      platform: string;
+      earnings: number;
+      reportingPeriod: string;
+      isrc: string | null;
+      upc: string | null;
+      quantity: number;
+      territory: string | null;
+      ownershipPercentage: number;
+    }> = [];
+    let errors: Array<{ row: number; message: string }> = [];
+    let hasMoreTransactions = false;
+    let hasMoreErrors = false;
+
+    if (upload.status === 'pending' && upload.s3_key) {
+      try {
+        const content = await getFileFromS3(upload.s3_key);
+        if (content) {
+          const parseResult = parseCSV(content);
+          summary = parseResult.summary;
+
+          // Return first 20 transactions as preview
+          preview = parseResult.transactions.slice(0, 20).map((tx) => ({
+            trackTitle: tx.trackTitle,
+            artistName: tx.artistName || '',
+            platform: tx.platform,
+            earnings: tx.earnings,
+            reportingPeriod: tx.reportingPeriod,
+            isrc: tx.isrc || null,
+            upc: tx.upc || null,
+            quantity: tx.quantity || 0,
+            territory: tx.territory || null,
+            ownershipPercentage: tx.ownershipPercentage || 100,
+          }));
+          hasMoreTransactions = parseResult.transactions.length > 20;
+
+          // Return first 10 errors
+          errors = parseResult.errors.slice(0, 10).map((e) => ({
+            row: e.row,
+            message: e.message,
+          }));
+          hasMoreErrors = parseResult.errors.length > 10;
+        }
+      } catch (e) {
+        console.error('Failed to parse CSV for preview:', e);
+      }
+    }
+
     return NextResponse.json({
       upload: {
         ...upload,
         downloadUrl,
         actualTransactionCount: transactionCount || 0,
       },
+      summary,
+      preview,
+      errors,
+      hasMoreTransactions,
+      hasMoreErrors,
     });
 
   } catch (error) {

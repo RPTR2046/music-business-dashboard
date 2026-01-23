@@ -35,8 +35,11 @@ export async function GET(request: NextRequest) {
     // Parse date range from query params
     const searchParams = request.nextUrl.searchParams;
     const defaultRange = getDefaultDateRange();
-    const from = searchParams.get('from') || defaultRange.from;
-    const to = searchParams.get('to') || defaultRange.to;
+    // Empty string means "no filter" (All time), null means use default
+    const fromParam = searchParams.get('from');
+    const toParam = searchParams.get('to');
+    const from = fromParam === '' ? null : (fromParam || defaultRange.from);
+    const to = toParam === '' ? null : (toParam || defaultRange.to);
 
     // Fetch transactions within date range
     let transactionsQuery = supabase

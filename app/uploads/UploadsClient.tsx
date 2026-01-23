@@ -62,13 +62,15 @@ export default function UploadsClient({ initialUploads, userEmail }: UploadsClie
   const [error, setError] = useState<string | null>(null);
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const date = new Date(dateStr);
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = hours % 12 || 12;
+    return `${month} ${day}, ${year}, ${hour12}:${minutes} ${ampm}`;
   };
 
   const formatCurrency = (amount: number) => {
@@ -158,6 +160,53 @@ export default function UploadsClient({ initialUploads, userEmail }: UploadsClie
       window.open(url, '_blank');
     } catch {
       alert('Failed to download file');
+    }
+  };
+
+  const handleCancelUpload = async (uploadId: string) => {
+    if (!confirm('Are you sure you want to cancel this upload?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/upload/${uploadId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setUploads(uploads.filter(u => u.id !== uploadId));
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to cancel upload');
+      }
+    } catch {
+      alert('Failed to cancel upload');
+    }
+  };
+
+  const handleResume = async (upload: Upload) => {
+    try {
+      // Fetch the upload details to get the preview
+      const response = await fetch(`/api/upload/${upload.id}`);
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || 'Failed to load upload details');
+        return;
+      }
+
+      const data = await response.json();
+      setPendingUpload({
+        uploadId: upload.id,
+        source: upload.source,
+        summary: data.summary,
+        preview: data.preview || [],
+        errors: data.errors || [],
+        hasMoreTransactions: data.hasMoreTransactions || false,
+        hasMoreErrors: data.hasMoreErrors || false,
+      });
+    } catch {
+      alert('Failed to load upload details');
     }
   };
 
@@ -269,7 +318,9 @@ export default function UploadsClient({ initialUploads, userEmail }: UploadsClie
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Transactions</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Import</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Download</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Remove</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -293,19 +344,42 @@ export default function UploadsClient({ initialUploads, userEmail }: UploadsClie
                       <td className="px-4 py-3 text-sm text-gray-500">
                         {formatDate(upload.uploaded_at)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right space-x-3">
+                      {/* Import column */}
+                      <td className="px-4 py-3 text-sm text-center">
+                        {upload.status === 'pending' && (
+                          <button
+                            onClick={() => handleResume(upload)}
+                            className="inline-flex items-center justify-center px-3 py-1 border border-green-300 text-xs font-medium rounded text-green-700 bg-green-50 hover:bg-green-100"
+                          >
+                            Resume
+                          </button>
+                        )}
+                      </td>
+                      {/* Download column */}
+                      <td className="px-4 py-3 text-sm text-center">
                         {upload.s3_key && (
                           <button
                             onClick={() => handleDownload(upload.id)}
-                            className="text-blue-600 hover:text-blue-800 text-sm"
+                            className="inline-flex items-center justify-center px-3 py-1 border border-blue-300 text-xs font-medium rounded text-blue-700 bg-blue-50 hover:bg-blue-100"
                           >
                             Download
+                          </button>
+                        )}
+                      </td>
+                      {/* Remove column */}
+                      <td className="px-4 py-3 text-sm text-center">
+                        {upload.status === 'pending' && (
+                          <button
+                            onClick={() => handleCancelUpload(upload.id)}
+                            className="inline-flex items-center justify-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+                          >
+                            Cancel
                           </button>
                         )}
                         {upload.status === 'completed' && (
                           <button
                             onClick={() => handleRollback(upload.id)}
-                            className="text-red-600 hover:text-red-800 text-sm"
+                            className="inline-flex items-center justify-center px-3 py-1 border border-red-300 text-xs font-medium rounded text-red-700 bg-red-50 hover:bg-red-100"
                           >
                             Rollback
                           </button>
