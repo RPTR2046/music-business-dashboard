@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { RevenueChart, PlatformBreakdown } from '@/components/charts';
+import { ContributorManager } from '@/components/ContributorManager';
 import { MonthlyRevenue, PlatformRevenue, getPlatformColor } from '@/lib/dashboard/types';
 
 interface SongStats {
@@ -283,6 +284,11 @@ export default function SongDetailClient({ songId, userEmail }: SongDetailClient
             </div>
           </div>
         )}
+
+        {/* Contributors & Splits */}
+        <div className="mb-6">
+          <ContributorManager songId={songId} />
+        </div>
 
         {/* Recent Transactions */}
         <div className="bg-white shadow rounded-lg p-6">

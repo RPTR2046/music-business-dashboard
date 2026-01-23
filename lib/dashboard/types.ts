@@ -12,6 +12,15 @@ export interface DashboardSummary {
   unmatchedCount: number;
 }
 
+export interface PeriodComparison {
+  currentRevenue: number;
+  previousRevenue: number;
+  revenueChangePercent: number | null; // null if no previous data
+  currentTransactions: number;
+  previousTransactions: number;
+  transactionChangePercent: number | null;
+}
+
 export interface IncomeBreakdown {
   masterRevenue: number;      // Recording/artist share income
   publishingRevenue: number;  // Songwriter/publishing income
@@ -39,6 +48,14 @@ export interface TopTrack {
   platforms: string[];
 }
 
+export interface TerritoryRevenue {
+  territory: string;
+  territoryName: string; // Human-readable name
+  revenue: number;
+  percentage: number;
+  transactionCount: number;
+}
+
 export interface RecentActivity {
   type: 'upload' | 'transaction';
   title: string;
@@ -49,9 +66,11 @@ export interface RecentActivity {
 
 export interface DashboardStatsResponse {
   summary: DashboardSummary;
+  comparison: PeriodComparison | null; // null for "All time" filter
   incomeBreakdown: IncomeBreakdown;
   revenueByMonth: MonthlyRevenue[];
   revenueByPlatform: PlatformRevenue[];
+  revenueByTerritory: TerritoryRevenue[];
   topTracks: TopTrack[];
   recentActivity: RecentActivity[];
 }

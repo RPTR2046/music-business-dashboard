@@ -9,6 +9,7 @@ import {
   PlatformRevenue,
   TopTrack,
   IncomeBreakdown,
+  TerritoryRevenue,
   getPlatformColor,
 } from './types';
 
@@ -20,6 +21,63 @@ export interface TransactionRow {
   created_at: string;
   income_type?: string | null;
   royalty_type?: string | null;
+  territory?: string | null;
+}
+
+// ISO 3166-1 alpha-2 country code to name mapping (common ones)
+const TERRITORY_NAMES: Record<string, string> = {
+  US: 'United States',
+  GB: 'United Kingdom',
+  CA: 'Canada',
+  AU: 'Australia',
+  DE: 'Germany',
+  FR: 'France',
+  JP: 'Japan',
+  BR: 'Brazil',
+  MX: 'Mexico',
+  IT: 'Italy',
+  ES: 'Spain',
+  NL: 'Netherlands',
+  SE: 'Sweden',
+  NO: 'Norway',
+  DK: 'Denmark',
+  FI: 'Finland',
+  NZ: 'New Zealand',
+  IE: 'Ireland',
+  AT: 'Austria',
+  CH: 'Switzerland',
+  BE: 'Belgium',
+  PL: 'Poland',
+  IN: 'India',
+  KR: 'South Korea',
+  TW: 'Taiwan',
+  SG: 'Singapore',
+  HK: 'Hong Kong',
+  PH: 'Philippines',
+  ID: 'Indonesia',
+  TH: 'Thailand',
+  MY: 'Malaysia',
+  ZA: 'South Africa',
+  AR: 'Argentina',
+  CL: 'Chile',
+  CO: 'Colombia',
+  PE: 'Peru',
+  PT: 'Portugal',
+  RU: 'Russia',
+  TR: 'Turkey',
+  AE: 'UAE',
+  SA: 'Saudi Arabia',
+  IL: 'Israel',
+  EG: 'Egypt',
+  NG: 'Nigeria',
+  KE: 'Kenya',
+  // Add more as needed
+};
+
+function getTerritoryName(code: string | null | undefined): string {
+  if (!code) return 'Unknown';
+  const upper = code.toUpperCase().trim();
+  return TERRITORY_NAMES[upper] || upper;
 }
 
 /**
@@ -115,6 +173,39 @@ export function aggregateTopTracks(
       revenue: Math.round(data.revenue * 100) / 100,
       transactionCount: data.count,
       platforms: Array.from(data.platforms).filter(Boolean),
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, limit);
+}
+
+/**
+ * Aggregate transactions by territory for geographic breakdown
+ */
+export function aggregateByTerritory(
+  transactions: TransactionRow[],
+  limit: number = 10
+): TerritoryRevenue[] {
+  const territoryMap = new Map<string, { revenue: number; count: number }>();
+  let total = 0;
+
+  for (const tx of transactions) {
+    const territory = tx.territory?.toUpperCase().trim() || 'Unknown';
+    const existing = territoryMap.get(territory) || { revenue: 0, count: 0 };
+    const amount = tx.amount || 0;
+    territoryMap.set(territory, {
+      revenue: existing.revenue + amount,
+      count: existing.count + 1,
+    });
+    total += amount;
+  }
+
+  return Array.from(territoryMap.entries())
+    .map(([territory, data]) => ({
+      territory,
+      territoryName: getTerritoryName(territory),
+      revenue: Math.round(data.revenue * 100) / 100,
+      percentage: total > 0 ? Math.round((data.revenue / total) * 1000) / 10 : 0,
+      transactionCount: data.count,
     }))
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, limit);

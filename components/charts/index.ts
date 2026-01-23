@@ -7,3 +7,4 @@ export { PlatformBreakdown } from './PlatformBreakdown';
 export { TopTracksTable } from './TopTracksTable';
 export { DateRangePicker } from './DateRangePicker';
 export { RecentActivityFeed } from './RecentActivityFeed';
+export { TerritoryBreakdown } from './TerritoryBreakdown';

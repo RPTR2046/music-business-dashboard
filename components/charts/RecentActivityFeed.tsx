@@ -74,14 +74,14 @@ function DollarIcon({ className }: { className?: string }) {
 function ActivitySkeleton() {
   return (
     <div className="bg-white shadow rounded-lg p-6">
-      <div className="h-5 w-32 bg-gray-200 rounded animate-pulse mb-4" />
+      <div className="h-5 w-32 skeleton mb-4" />
       <div className="space-y-4">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+          <div key={i} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
+            <div className="w-8 h-8 rounded-full skeleton" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-              <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+              <div className="h-4 skeleton w-3/4" />
+              <div className="h-3 skeleton w-1/2" />
             </div>
           </div>
         ))}
@@ -97,18 +97,37 @@ export function RecentActivityFeed({ data, isLoading }: RecentActivityFeedProps)
 
   return (
     <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
-      <div className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+        {data.length > 0 && (
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+            {data.length} items
+          </span>
+        )}
+      </div>
+      <div className="space-y-3">
         {data.length === 0 ? (
-          <p className="text-gray-500 text-sm py-4 text-center">No recent activity</p>
+          <div className="py-8 text-center">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-gray-500 text-sm">No recent activity</p>
+            <p className="text-gray-400 text-xs mt-1">Upload statements to see activity here</p>
+          </div>
         ) : (
           data.map((activity, idx) => (
-            <div key={idx} className="flex items-start gap-3">
+            <div
+              key={idx}
+              className="flex items-start gap-3 p-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors animate-fade-in"
+              style={{ animationDelay: `${idx * 30}ms` }}
+            >
               <div
-                className={`p-2 rounded-full flex-shrink-0 ${
+                className={`p-2 rounded-lg flex-shrink-0 ${
                   activity.type === 'upload'
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-green-100 text-green-600'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'bg-green-50 text-green-600'
                 }`}
               >
                 {activity.type === 'upload' ? (
@@ -121,13 +140,13 @@ export function RecentActivityFeed({ data, isLoading }: RecentActivityFeedProps)
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {activity.title}
                 </p>
-                <p className="text-xs text-gray-500">{activity.description}</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-500 line-clamp-1">{activity.description}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
                   {formatRelativeTime(activity.createdAt)}
                 </p>
               </div>
               {activity.amount !== undefined && activity.amount > 0 && (
-                <span className="text-sm font-medium text-green-600 flex-shrink-0">
+                <span className="text-sm font-semibold text-green-600 flex-shrink-0 bg-green-50 px-2 py-0.5 rounded-full">
                   {formatCurrency(activity.amount)}
                 </span>
               )}
