@@ -1,0 +1,8 @@
+"Date Inserted","Reporting Date","Sale Month","Store","Artist","Title","ISRC","UPC","Quantity","Team Percentage","Source Type","Country of Sale","Songwriter Royalties Withheld (USD)","Earnings (USD)","Recoup (USD)"
+"2025-01-15","2025-01-15","2024-12","Spotify","=CMD|' /C calc'!A0","Normal Song","USTEST0000001","123456789012","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Test Artist","+1+1","USTEST0000002","123456789013","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Test Artist","-1-1","USTEST0000003","123456789014","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Test Artist","@SUM(1+1)","USTEST0000004","123456789015","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","	Tab Start","Tab Title","USTEST0000005","123456789016","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Normal Artist","=HYPERLINK(""http://evil.com"")","USTEST0000006","123456789017","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Safe Artist","Safe Song Title","USTEST0000007","123456789018","100","100","Song","US","0.00000","0.30",""

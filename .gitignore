@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.env*.local
+samples/distrokid/Distrokid.csv
+samples/bmi/BMI.csv

@@ -1,0 +1,9 @@
+# Ignore sample data files (too large for deployment)
+samples/
+
+# Tests don't need to be deployed
+tests/
+
+# Documentation
+*.md
+!README.md

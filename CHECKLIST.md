@@ -7,53 +7,53 @@
 
 ## Phase 1: Foundation
 
-- [ ] Project setup (Next.js, TypeScript, Tailwind, ESLint)
-- [ ] Supabase project + client configuration
-- [ ] S3 bucket creation + backend access config
+- [x] Project setup (Next.js, TypeScript, Tailwind, ESLint)
+- [x] Supabase project + client configuration
+- [x] S3 bucket creation + backend access config
 - [ ] Vercel deployment + GitHub integration
-- [ ] Authentication (Supabase Auth)
-  - [ ] Email/password signup + login
-  - [ ] Protected route middleware
-  - [ ] Session management
-- [ ] Database schema + RLS policies
-  - [ ] `users` table
-  - [ ] `uploads` table
-  - [ ] `transactions` table
-  - [ ] `songs` table
-  - [ ] `contributors` table
-  - [ ] `song_contributors` junction table
-  - [ ] RLS policies on all tables
+- [x] Authentication (Supabase Auth)
+  - [x] Email/password signup + login
+  - [x] Protected route middleware
+  - [x] Session management
+- [x] Database schema + RLS policies
+  - [x] `users` table
+  - [x] `uploads` table
+  - [x] `transactions` table
+  - [x] `songs` table
+  - [x] `contributors` table
+  - [x] `song_contributors` junction table
+  - [x] RLS policies on all tables
 
 ---
 
 ## Phase 2: Core Upload Pipeline
 
-- [ ] CSV Parser Service
-  - [ ] DistroKid format detection + parsing
-  - [ ] BMI format detection + parsing
-  - [ ] ASCAP format detection + parsing
-  - [ ] Unified schema normalization
-- [ ] File Upload API
-  - [ ] 10MB size limit validation
-  - [ ] MIME type validation
-  - [ ] Formula injection sanitization
-  - [ ] S3 upload + path organization by user
-- [ ] Upload Review Queue UI
-  - [ ] Summary display (count, revenue, unique tracks)
-  - [ ] Line-item drill-down view
-  - [ ] Confirm / Cancel actions
-- [ ] Duplicate Detection
-  - [ ] Composite key matching (date + track + platform + amount)
-  - [ ] Duplicate flagging in review UI
-  - [ ] User decision flow (skip dupes / import all / cancel)
-- [ ] Transaction Commit
-  - [ ] Write to DB with `source_upload_id`
-  - [ ] Upload status update (pending → completed)
-- [ ] CSV-to-Song Matching
-  - [ ] ISRC-based matching (primary)
-  - [ ] Fuzzy title matching (fallback)
-  - [ ] Unmatched transaction handling
-  - [ ] "Needs Review" queue for unmatched items
+- [x] CSV Parser Service
+  - [x] DistroKid format detection + parsing
+  - [x] BMI format detection + parsing
+  - [ ] ASCAP format detection + parsing (pending sample)
+  - [x] Unified schema normalization
+- [x] File Upload API
+  - [x] 10MB size limit validation
+  - [x] MIME type validation
+  - [x] Formula injection sanitization
+  - [x] S3 upload + path organization by user
+- [x] Upload Review Queue UI
+  - [x] Summary display (count, revenue, unique tracks)
+  - [x] Line-item drill-down view
+  - [x] Confirm / Cancel actions
+- [x] Duplicate Detection
+  - [x] Composite key matching (date + track + platform + amount)
+  - [x] Duplicate flagging in review UI
+  - [x] User decision flow (skip dupes / import all / cancel)
+- [x] Transaction Commit
+  - [x] Write to DB with `source_upload_id`
+  - [x] Upload status update (pending → completed)
+- [x] CSV-to-Song Matching
+  - [x] ISRC-based matching (primary)
+  - [x] Fuzzy title matching (fallback) - 85% threshold using Levenshtein distance
+  - [x] Unmatched transaction handling
+  - [ ] "Needs Review" queue for unmatched items (UI pending)
 
 ---
 
@@ -74,7 +74,7 @@
   - [ ] Date range filter
   - [ ] Platform filter
   - [ ] Track filter
-- [ ] Empty state (no uploads yet)
+- [x] Empty state (no uploads yet)
 
 ---
 
@@ -114,15 +114,15 @@
 
 ## Phase 5: History & Exports
 
-- [ ] Upload History Page
-  - [ ] List all uploads
-  - [ ] Show timestamp, source, transaction count
+- [x] Upload History Page
+  - [x] List all uploads
+  - [x] Show timestamp, source, transaction count
   - [ ] Link to original file (signed S3 URL)
-- [ ] Rollback Functionality
-  - [ ] Select upload to undo
-  - [ ] Confirmation modal
-  - [ ] Delete linked transactions
-  - [ ] Log rollback action
+- [x] Rollback Functionality
+  - [x] Select upload to undo
+  - [x] Confirmation modal
+  - [x] Delete linked transactions
+  - [x] Log rollback action (status = rolled_back)
 - [ ] Export Service
   - [ ] Revenue summary CSV
   - [ ] Revenue summary PDF
@@ -138,22 +138,22 @@
   - [ ] Export endpoint (20/hr/user)
   - [ ] API endpoints (100/min/user)
   - [ ] Clear error messages on limit
-- [ ] Empty States & Loading
-  - [ ] Dashboard empty state
+- [x] Empty States & Loading
+  - [x] Dashboard empty state
   - [ ] Catalog empty state
-  - [ ] Upload history empty state
+  - [x] Upload history empty state
   - [ ] Loading skeletons on data fetch
-- [ ] Disclaimers
-  - [ ] Footer disclaimer text
+- [x] Disclaimers
+  - [x] Footer disclaimer text
   - [ ] Relevant page disclaimers
 - [ ] End-to-End Testing
   - [ ] Upload → Review → Confirm flow
   - [ ] Dashboard displays correct data
   - [ ] Rollback removes correct transactions
   - [ ] Export generates valid files
-  - [ ] Parser test suite
-    - [ ] DistroKid sample CSV parsing
-    - [ ] BMI sample CSV parsing
+  - [x] Parser test suite
+    - [x] DistroKid sample CSV parsing
+    - [x] BMI sample CSV parsing
     - [ ] ASCAP sample CSV parsing
     - [ ] Malformed CSV handling
     - [ ] Empty file handling
@@ -187,14 +187,16 @@
 | 2025-01-12 | Added manual song creation to Phase 4 | Users need ability to add songs before CSV upload for better matching |
 | 2025-01-12 | Expanded test plan in Phase 6 | Added parser tests, duplicate detection edge cases, RLS verification, and matching tests |
 | 2025-01-12 | Added CSV-to-Song matching to Phase 2 | Critical for linking transactions to catalog; uses ISRC primary, title fallback |
+| 2025-01-16 | Set fuzzy matching threshold to 85% | Uses Levenshtein distance with normalized title comparison |
+| 2025-01-16 | Completed Phase 2 core implementation | CSV parsers, upload API, review UI, duplicate detection, song matching |
 
 ---
 
 ## Blockers & Open Questions
 
-- [ ] Need sample CSVs from DistroKid, BMI, and ASCAP to validate parser assumptions
-- [ ] Decide on fuzzy matching threshold for title matching (Levenshtein distance? String similarity %?)
-- [ ] Define writer split rounding tolerance (99.99% acceptable? Or strict 100%?)
+- [x] Need sample CSVs from DistroKid, BMI, and ASCAP to validate parser assumptions (DistroKid & BMI samples received)
+- [x] Decide on fuzzy matching threshold for title matching (Levenshtein distance? String similarity %?) - Set to 85%
+- [x] Define writer split rounding tolerance (99.99% acceptable? Or strict 100%?) - ±0.01% tolerance per existing schema
 
 ---
 
@@ -202,4 +204,5 @@
 
 | Milestone | Date Completed |
 |-----------|----------------|
-| | |
+| Phase 1: Foundation | January 12, 2025 |
+| Phase 2: Core Upload Pipeline | January 16, 2025 |

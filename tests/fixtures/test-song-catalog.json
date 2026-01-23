@@ -1,0 +1,54 @@
+{
+  "description": "Test song catalog for matching tests. Use this data to seed the songs table.",
+  "songs": [
+    {
+      "title": "Midnight Dreams",
+      "artist_name": "Test Artist",
+      "isrc": "USTEST0000001",
+      "upc": "123456789012",
+      "release_date": "2024-01-15"
+    },
+    {
+      "title": "Ocean Waves",
+      "artist_name": "Test Artist",
+      "isrc": "USTEST0000002",
+      "upc": "123456789013",
+      "release_date": "2024-02-20"
+    },
+    {
+      "title": "City Lights",
+      "artist_name": "Test Artist",
+      "isrc": "USTEST0000003",
+      "upc": "123456789014",
+      "release_date": "2024-03-10"
+    },
+    {
+      "title": "Starlight",
+      "artist_name": "Test Artist",
+      "isrc": "USTEST0000004",
+      "upc": "123456789015",
+      "release_date": "2024-04-05"
+    },
+    {
+      "title": "Shared Song",
+      "artist_name": "Collab Artist",
+      "isrc": "USTEST0000005",
+      "upc": "123456789016",
+      "release_date": "2024-05-01"
+    },
+    {
+      "title": "Song Without ISRC",
+      "artist_name": "Test Artist",
+      "isrc": null,
+      "upc": "123456789030",
+      "release_date": "2024-06-15"
+    },
+    {
+      "title": "Similar Title",
+      "artist_name": "Test Artist",
+      "isrc": "USTEST0000020",
+      "upc": "123456789031",
+      "release_date": "2024-07-20"
+    }
+  ]
+}

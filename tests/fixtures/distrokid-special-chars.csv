@@ -1,0 +1,11 @@
+"Date Inserted","Reporting Date","Sale Month","Store","Artist","Title","ISRC","UPC","Quantity","Team Percentage","Source Type","Country of Sale","Songwriter Royalties Withheld (USD)","Earnings (USD)","Recoup (USD)"
+"2025-01-15","2025-01-15","2024-12","Spotify","Test Artist","Song with ""Quotes""","USTEST0000001","123456789012","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Artist & Friends","Song (feat. Guest)","USTEST0000002","123456789013","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Über Artist","Naïve Melody","USTEST0000003","123456789014","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Test Artist","Song [Remix]","USTEST0000004","123456789015","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Test Artist","Song - Radio Edit","USTEST0000005","123456789016","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","日本語アーティスト","日本語の歌","USTEST0000006","123456789017","100","100","Song","JP","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","한국 아티스트","한국어 노래","USTEST0000007","123456789018","100","100","Song","KR","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Test Artist","Song with, Comma","USTEST0000008","123456789019","100","100","Song","US","0.00000","0.30",""
+"2025-01-15","2025-01-15","2024-12","Spotify","Test Artist","Song with
+Newline","USTEST0000009","123456789020","100","100","Song","US","0.00000","0.30",""
